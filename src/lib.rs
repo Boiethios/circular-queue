@@ -232,11 +232,149 @@ impl<T> CircularQueue<T> {
         let (a, b) = self.data.split_at_mut(self.insertion_index);
         a.iter_mut().rev().chain(b.iter_mut().rev())
     }
+
+    /// Returns the first element of the queue or `None` if it is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use circular_queue::CircularQueue;
+    ///
+    /// let mut queue = CircularQueue::with_capacity(3);
+    /// assert!(queue.first().is_none());
+    ///
+    /// queue.push(1);
+    /// queue.push(2);
+    /// queue.push(3);
+    /// assert_eq!(queue.first(), Some(&1));
+    /// ```
+    #[inline]
+    pub fn first(&self) -> Option<&T> {
+        match self.data.len() == self.capacity() {
+            false => self.data.first(),
+            true => Some(&self.data[self.insertion_index]),
+        }
+    }
+
+    /// Returns a mutable pointer to the first element of the queue,
+    /// or None if it is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use circular_queue::CircularQueue;
+    ///
+    /// let mut queue = CircularQueue::with_capacity(3);
+    /// queue.push(1);
+    /// queue.push(2);
+    /// queue.push(3);
+    ///
+    /// if let Some(first) = queue.first_mut() {
+    ///     *first = 42;
+    /// }
+    /// assert_eq!(queue.first(), Some(&42));
+    /// ```
+    #[inline]
+    pub fn first_mut(&mut self) -> Option<&mut T> {
+        match self.data.len() == self.capacity() {
+            false => self.data.first_mut(),
+            true => Some(&mut self.data[self.insertion_index]),
+        }
+    }
+
+    /// Returns the last element of the queue or `None` if it is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use circular_queue::CircularQueue;
+    ///
+    /// let mut queue = CircularQueue::with_capacity(3);
+    /// assert!(queue.last().is_none());
+    ///
+    /// queue.push(1);
+    /// queue.push(2);
+    /// queue.push(3);
+    /// assert_eq!(queue.last(), Some(&3));
+    /// ```
+    #[inline]
+    pub fn last(&self) -> Option<&T> {
+        match self.insertion_index {
+            0 => self.data.last(),
+            i => Some(&self.data[i - 1])
+        }
+    }
+
+    /// Returns a mutable pointer to the last element of the queue,
+    /// or None if it is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use circular_queue::CircularQueue;
+    ///
+    /// let mut queue = CircularQueue::with_capacity(3);
+    /// queue.push(1);
+    /// queue.push(2);
+    /// queue.push(3);
+    ///
+    /// if let Some(last) = queue.last_mut() {
+    ///     *last = 42;
+    /// }
+    /// assert_eq!(queue.last(), Some(&42));
+    /// ```
+    #[inline]
+    pub fn last_mut(&mut self) -> Option<&mut T> {
+        match self.insertion_index {
+            0 => self.data.last_mut(),
+            i => Some(&mut self.data[i - 1])
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn get_first() {
+        let mut q = CircularQueue::with_capacity(2);
+
+        assert!(q.first().is_none());
+        q.push(0);
+        assert_eq!(q.first(), Some(&0));
+        q.push(1);
+        assert_eq!(q.first(), Some(&0));
+        q.push(2);
+        assert_eq!(q.first(), Some(&1));
+        q.push(3);
+        assert_eq!(q.first(), Some(&2));
+        q.push(4);
+        assert_eq!(q.first(), Some(&3));
+
+        *q.first_mut().unwrap() = 42;
+        assert_eq!(q.first(), Some(&42));
+    }
+
+    #[test]
+    fn get_last() {
+        let mut q = CircularQueue::with_capacity(2);
+
+        assert!(q.last().is_none());
+        q.push(0);
+        assert_eq!(q.last(), Some(&0));
+        q.push(1);
+        assert_eq!(q.last(), Some(&1));
+        q.push(2);
+        assert_eq!(q.last(), Some(&2));
+        q.push(3);
+        assert_eq!(q.last(), Some(&3));
+        q.push(4);
+        assert_eq!(q.last(), Some(&4));
+
+        *q.last_mut().unwrap() = 42;
+        assert_eq!(q.last(), Some(&42));
+    }
 
     #[test]
     #[should_panic]
